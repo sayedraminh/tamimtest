@@ -34,7 +34,7 @@
           <p class="card-description">Enter your credentials to access your account</p>
         </div>
         <div class="card-content">
-          <form id="loginForm" class="space-y-4">
+          <form id="loginForm" class="space-y-4" onsubmit="return false;">
             <div class="form-group">
               <label for="email" class="label">Email</label>
               <input id="email" name="email" type="email" placeholder="Enter your email address" class="input" required>
@@ -170,8 +170,43 @@
     });
   </script>
   
-  <!-- Firebase Authentication -->
-  <script type="module" src="login.js"></script>
+  <!-- Firebase Authentication - Inline for reliability -->
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const passwordError = document.getElementById('passwordError');
+        
+        passwordError.style.display = 'none';
+
+        if(!email.value || !password.value) {
+            alert("Please enter both email and password.");
+            return;
+        }
+        
+        // Disable button while logging in
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
+            console.log("User logged in:", userCredential.user.email);
+            window.location.href = 'dashboard.html';
+        } catch (error) {
+            console.error("Login error:", error);
+            passwordError.textContent = error.message;
+            passwordError.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Log in';
+        }
+    });
+  </script>
 </body>
 
 </html>
