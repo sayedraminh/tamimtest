@@ -1,3 +1,4 @@
+// Firebase Configuration for Personalized Recommendations Engine
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
