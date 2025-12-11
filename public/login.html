@@ -168,95 +168,10 @@
         clearTimeout(passwordVisibilityTimeout);
       }
     });
-
-    document.getElementById('loginForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      
-      // Clear password visibility timeout if active
-      if (passwordVisibilityTimeout) {
-        clearTimeout(passwordVisibilityTimeout);
-        passwordInput.type = 'password';
-        passwordToggle.classList.remove('showing', 'active');
-      }
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const emailError = document.getElementById('emailError');
-      const passwordError = document.getElementById('passwordError');
-
-      emailError.style.display = 'none';
-      passwordError.style.display = 'none';
-
-      let isValid = true;
-
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!email || !emailPattern.test(email)) {
-        emailError.style.display = 'block';
-        isValid = false;
-      }
-
-      if (!password || password.length < 6) {
-        passwordError.style.display = 'block';
-        isValid = false;
-      }
-
-      if (!isValid) return;
-
-      // Show loading state
-      const submitButton = document.querySelector('button[type="submit"]');
-      const originalText = submitButton.textContent;
-      submitButton.disabled = true;
-      submitButton.textContent = 'Logging in...';
-
-      try {
-        // Make actual API call to backend
-        // Use URLSearchParams to send as application/x-www-form-urlencoded
-        const formData = new URLSearchParams();
-        formData.append('email', email);
-        formData.append('password', password);
-
-        const response = await fetch('/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: formData,
-          redirect: 'follow',
-          credentials: 'include' // Include cookies for session
-        });
-
-        if (response.ok || response.redirected) {
-          // Login successful - redirect to dashboard
-          try {
-            const data = await response.json();
-            if (data.user) {
-              localStorage.setItem('userEmail', data.user.email);
-              localStorage.setItem('userName', data.user.username || email.split('@')[0]);
-              localStorage.setItem('userId', data.user.id);
-            }
-          } catch (e) {
-            // If response is a redirect, just store basic info
-            localStorage.setItem('userEmail', email);
-            localStorage.setItem('userName', email.split('@')[0]);
-          }
-          window.location.href = '/dashboard.html';
-        } else {
-          // Login failed - show error
-          const errorText = await response.text();
-          passwordError.textContent = errorText || 'Invalid email or password';
-          passwordError.style.display = 'block';
-          submitButton.disabled = false;
-          submitButton.textContent = originalText;
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        passwordError.textContent = 'Network error. Please try again.';
-        passwordError.style.display = 'block';
-        submitButton.disabled = false;
-        submitButton.textContent = originalText;
-      }
-    });
   </script>
+  
+  <!-- Firebase Authentication -->
+  <script type="module" src="login.js"></script>
 </body>
 
 </html>
