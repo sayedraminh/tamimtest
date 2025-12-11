@@ -646,3 +646,6 @@ app.get('/api/movie-recommendations-with-youtube/:userId', requireAuth, async (r
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
+// Export for Vercel serverless deployment
+module.exports = app;
