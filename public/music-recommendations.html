@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Recommendations - Personalized Recommendations Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, darkcyan 0%, darkorchid 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+
+    .upload-section {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 3rem;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+    }
+
+    .upload-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    .upload-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .upload-section p {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .file-input-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 2rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-input-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1.5rem 3rem;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .file-input-label:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+    }
+
+    .file-input-icon {
+      font-size: 1.5rem;
+    }
+
+    .upload-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+      margin-top: 1rem;
+    }
+
+    .upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6);
+    }
+
+    .upload-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .upload-status {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .upload-status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .upload-status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .upload-status.loading {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .loading-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-content {
+      background: white;
+      padding: 3rem;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .loading-content p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .recommendations-section {
+      display: none;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .recommendations-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .recommendations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .recommendation-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid #eaeaea;
+      transition: all 0.3s ease;
+      position: relative;
+      height: fit-content;
+      align-self: start;
+    }
+
+    .recommendation-card.playing {
+      transform: scale(1.2);
+      z-index: 10;
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+      border: 2px solid #667eea;
+      grid-column: 1 / -1;
+      justify-self: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .recommendation-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .track-player {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 1px solid #e9ecef;
+      min-height: 0;
+      height: 0;
+      overflow: hidden;
+      transition: all 0.5s ease;
+      opacity: 0;
+    }
+
+    .track-player iframe {
+      width: 100%;
+      height: 200px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    .track-player.show {
+      display: block;
+      height: auto;
+      min-height: auto;
+      opacity: 1;
+    }
+
+    .more-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+      margin: 2rem auto;
+      display: block;
+    }
+
+    .more-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6);
+    }
+
+    .more-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Data Options Styles */
+    .data-options {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      justify-content: center;
+    }
+
+    .option-btn {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 15px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 250px;
+      text-align: left;
+    }
+
+    .option-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      border-color: #667eea;
+    }
+
+    .continue-btn:hover {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .upload-new-btn:hover {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+      color: white;
+    }
+
+    .option-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .option-content h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .option-content p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+
+    .track-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .track-artist {
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    .track-album {
+      color: #666;
+      font-size: 0.9rem;
+      margin: 0.3rem 0;
+      font-style: italic;
+    }
+
+    .track-genre {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .track-details {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.5rem 0;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .track-year {
+      font-weight: 500;
+    }
+
+    .track-duration {
+      font-weight: 500;
+    }
+
+    .track-features {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 0.8rem;
+      margin: 0.8rem 0;
+      border: 1px solid #e9ecef;
+    }
+
+    .feature-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.3rem 0;
+      font-size: 0.85rem;
+    }
+
+    .feature-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .feature-value {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .similarity-score {
+      font-size: 0.9rem;
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    .play-btn {
+      background: linear-gradient(135deg, #a8b4f0 0%, #b794c6 100%);
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .play-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .upload-section {
+        padding: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="dashboard.html" class="back-btn">
+    ← Back to Dashboard
+  </a>
+
+  <div class="container">
+    <div class="header">
+      <h1>🎵 Music Recommendations</h1>
+      <p>Get personalized recommendations based on your listening history</p>
+    </div>
+
+    <!-- Choice Section: Continue with existing or upload new -->
+    <div class="upload-section" id="choiceSection"
+      style="background: #ffffff; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); display: none;">
+      <div class="upload-icon">🎶</div>
+      <h2>Welcome Back!</h2>
+      <p>We found your previously uploaded listening history. Would you like to continue with your existing data or upload a new file?</p>
+      
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+        <button id="continueExistingBtn" class="upload-btn" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+          ✅ Continue with Existing Data
+        </button>
+        <button id="uploadNewBtn" class="upload-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          📤 Upload New CSV File
+        </button>
+      </div>
+      <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #888;">
+        Note: Uploading a new file will replace your existing listening history.
+      </p>
+    </div>
+
+    <!-- Listening History Upload Section -->
+    <div class="upload-section" id="listeningHistorySection"
+      style="background: #ffffff; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); display: none;">
+      <div class="upload-icon">📊</div>
+      <h2>Upload Your Listening History</h2>
+      <p>Upload your 2-week listening history CSV file to get personalized recommendations based on your listening
+        behavior, time of day preferences, mood, and activities.</p>
+
+      <div class="file-input-container">
+        <input type="file" id="historyFile" class="file-input" accept=".csv" required>
+        <label for="historyFile" class="file-input-label">
+          <span class="file-input-icon">📊</span>
+          <span>Choose Listening History CSV File</span>
+        </label>
+      </div>
+
+      <button id="uploadHistoryBtn" class="upload-btn" disabled>Upload Listening History</button>
+      <div id="historyUploadStatus" class="upload-status" style="display: none;"></div>
+    </div>
+
+    <div class="recommendations-section" id="recommendationsSection" style="display: none;">
+      <h2>Your Personalized Music Recommendations</h2>
+      <p style="text-align: center; color: #666; margin-bottom: 2rem;">Based on your listening history analysis -
+        perfectly matched songs for you</p>
+      <div class="recommendations-grid" id="recommendationsGrid"
+        style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); max-width: 1400px; margin: 0 auto;">
+        <!-- Recommendations will be loaded here -->
+      </div>
+      <button id="moreBtn" class="more-btn"
+        style="display: none; margin: 2rem auto; padding: 1rem 2rem; font-size: 1.1rem;">
+        Load 4 More Recommendations
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <h3>Processing Your Music Data</h3>
+      <p>Please wait while we analyze your music preferences and generate personalized recommendations...</p>
+    </div>
+  </div>
+
+  <script type="module">
+    /*
+      Music Recommendations – Firebase + Node + YouTube (Option 2, cleaned)
+  
+      Backend endpoints actually available in your index.js:
+        ✅ GET  /api/current-user
+        ✅ POST /api/upload-listening-history (expects JSON: { csvText })
+        ✅ GET  /api/recommendations
+        ✅ GET  /api/recommendations-with-youtube/:userId
+        ✅ GET  /api/search-video?q=        (we don't strictly need this now)
+    */
+
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+    // -------------------- Auth helpers --------------------
+    async function getFirebaseToken() {
+      // Try currentUser first
+      let user = auth.currentUser;
+      if (!user) {
+        // Wait up to ~3 seconds for Firebase to finish restoring session
+        user = await new Promise(resolve => {
+          let resolved = false;
+          const timer = setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              resolve(null);
+            }
+          }, 3000);
+
+          onAuthStateChanged(auth, u => {
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(timer);
+              resolve(u);
+            }
+          });
+        });
+      }
+
+      if (!user) return null;
+      return await user.getIdToken();
+    }
+
+    async function authFetch(url, options = {}) {
+      const token = await getFirebaseToken();
+      const headers = { ...(options.headers || {}) };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
+      return fetch(url, { ...options, headers });
+    }
+
+    async function getCurrentUserId() {
+      try {
+        const res = await authFetch('/api/current-user', { method: 'GET' });
+        if (!res.ok) {
+          console.warn('getCurrentUserId failed with status', res.status);
+          return null;
+        }
+        const data = await res.json();
+        return data.userID || data.userId || null;
+      } catch (err) {
+        console.error('getCurrentUserId error:', err);
+        return null;
+      }
+    }
+
+    // -------------------- DOM refs & state --------------------
+    let choiceSection, continueExistingBtn, uploadNewBtn;
+    let historyFileInput, historyUploadBtn, historyUploadStatus, listeningHistorySection;
+    let recommendationsSection, recommendationsGrid, loadingScreen, moreBtn;
+
+    let currentUserId = null;
+    let currentOffset = 0;
+    let currentlyPlayingIndex = null;
+    let hasExistingData = false;
+
+    // -------------------- Tiny helpers --------------------
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[ch]);
+    }
+
+    // Check if user has existing listening history
+    async function checkExistingHistory() {
+      try {
+        const res = await authFetch('/api/recommendations', { method: 'GET' });
+        if (!res.ok) return false;
+        const data = await res.json();
+        return data.recommendations && data.recommendations.length > 0;
+      } catch (err) {
+        console.error('checkExistingHistory error:', err);
+        return false;
+      }
+    }
+
+    function showHistoryStatus(msg, type = 'info') {
+      if (!historyUploadStatus) return;
+      historyUploadStatus.textContent = msg;
+      historyUploadStatus.className = 'upload-status ' + type;
+      historyUploadStatus.style.display = 'block';
+    }
+
+    // -------------------- Upload: Listening History CSV --------------------
+    async function uploadListeningHistory() {
+      if (!historyFileInput.files.length) {
+        showHistoryStatus("Please choose a listening history CSV file", "error");
+        return;
+      }
+
+      const file = historyFileInput.files[0];
+      historyUploadBtn.disabled = true;
+      showHistoryStatus("Uploading and analyzing listening history...", "loading");
+
+      // Read CSV text from the file
+      const csvText = await file.text();
+
+      try {
+        const res = await authFetch("/api/upload-listening-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ csvText })
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          showHistoryStatus(`Upload failed: ${res.status} ${txt}`, "error");
+          historyUploadBtn.disabled = false;
+          return;
+        }
+
+        const json = await res.json();
+        showHistoryStatus(json.message || "Listening history uploaded", "success");
+
+        // After upload → load recommendations
+        loadingScreen.style.display = "flex";
+
+        setTimeout(() => {
+          loadingScreen.style.display = "none";
+          listeningHistorySection.style.display = "none";
+          recommendationsSection.style.display = "block";
+
+          loadRecommendationsWithYouTube(0);
+        }, 2000);
+
+      } catch (err) {
+        console.error("uploadListeningHistory error", err);
+        showHistoryStatus("Upload failed: " + err.message, "error");
+      }
+    }
+
+
+    // -------------------- Recommendations fetching --------------------
+    async function loadRecommendationsWithYouTube(offset = 0) {
+      // Make sure we know which user this is (server-side auth uses Firebase token)
+      if (!currentUserId) {
+        currentUserId = await getCurrentUserId();
+      }
+      if (!currentUserId) {
+        console.warn('No currentUserId; redirecting to login.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      if (!recommendationsGrid) return;
+      recommendationsGrid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:2rem;">
+        <p>🎵 Finding the best songs for you with YouTube links...</p>
+      </div>
+    `;
+
+      try {
+        const res = await authFetch(
+          `/api/recommendations-with-youtube/${encodeURIComponent(currentUserId)}?offset=${offset}`,
+          { method: 'GET' }
+        );
+
+        if (!res.ok) {
+          console.warn('YT recommendations endpoint returned', res.status);
+          return loadRecommendationsFallback();
+        }
+
+        const data = await res.json();
+        if (!data || !Array.isArray(data.recommendations) || data.recommendations.length === 0) {
+          return loadRecommendationsFallback();
+        }
+
+        // For now, always treat as first page (backend has hasMore: false)
+        displayRecommendationsWithYouTube(data.recommendations, data);
+        currentOffset = offset;
+      } catch (err) {
+        console.error('loadRecommendationsWithYouTube error:', err);
+        loadRecommendationsFallback();
+      }
+    }
+
+    async function loadRecommendationsFallback() {
+      if (!recommendationsGrid) return;
+
+      try {
+        const res = await authFetch('/api/recommendations', { method: 'GET' });
+        if (!res.ok) {
+          recommendationsGrid.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;color:#c00;">
+            Failed to get recommendations.
+          </div>`;
+          return;
+        }
+
+        const data = await res.json();
+        if (Array.isArray(data.recommendations) && data.recommendations.length) {
+          // Adapt data into same shape, but without YouTube info
+          const recs = data.recommendations.map(r => ({ ...r, youtube: null }));
+          displayRecommendationsWithYouTube(recs, { hasMore: false, offset: 0 });
+        } else {
+          recommendationsGrid.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:2rem;">
+            No recommendations yet. Try uploading your CSV files above.
+          </div>`;
+        }
+      } catch (err) {
+        console.error('loadRecommendationsFallback error:', err);
+        recommendationsGrid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;color:#c00;">
+          Error loading recommendations.
+        </div>`;
+      }
+    }
+
+    // -------------------- Rendering --------------------
+    function displayRecommendationsWithYouTube(recommendations, meta) {
+      if (!recommendationsGrid) return;
+      recommendationsGrid.innerHTML = '';
+      appendRecommendationsWithYouTube(recommendations, meta);
+    }
+
+    function appendRecommendationsWithYouTube(recommendations, meta) {
+      if (!recommendationsGrid) return;
+
+      const sorted = [...recommendations].sort(
+        (a, b) => (b.similarity_score || 0) - (a.similarity_score || 0)
+      );
+
+      const startIndex = recommendationsGrid.children.length;
+
+      sorted.forEach((track, i) => {
+        const index = startIndex + i;
+        const card = document.createElement('div');
+        card.className = 'recommendation-card';
+        card.id = `recommendation-card-${index}`;
+        card.dataset.index = index;
+        card.style.position = 'relative';
+
+        const similarityPercent = ((track.similarity_score || 0) * 100).toFixed(1);
+        const youtubeId =
+          (track.youtube && (track.youtube.id || track.youtube.videoId)) ||
+          track.youtubeId ||
+          '';
+        const hasYouTube = !!youtubeId;
+
+        const thumbnailUrl = track.youtube?.thumbnail || 
+          (youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : null);
+
+        card.innerHTML = `
+        <div style="display:flex;gap:1rem;align-items:flex-start;">
+          <!-- Left: Song Info -->
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px;color:#1a1a2e;">
+              ${escapeHtml(track.title || 'Untitled')}
+            </div>
+            <div style="color:#555;margin-bottom:6px;font-size:0.95rem;">
+              by ${escapeHtml(track.artist || 'Unknown')}
+            </div>
+            ${track.genre ? `<div style="color:#888;font-size:0.85rem;margin-bottom:4px;">🎵 ${escapeHtml(track.genre)}</div>` : ''}
+            <div style="margin-top:8px;font-weight:700;font-size:1rem;color:#667eea;">
+              ${similarityPercent}% Match
+            </div>
+          </div>
+          <!-- Right: Thumbnail -->
+          ${thumbnailUrl ? `
+          <div style="flex-shrink:0;width:120px;height:90px;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+            <img src="${thumbnailUrl}" alt="${escapeHtml(track.title)}" 
+                 style="width:100%;height:100%;object-fit:cover;"
+                 onerror="this.parentElement.style.display='none'">
+          </div>
+          ` : ''}
+        </div>
+        
+        <!-- YouTube Player (hidden by default) -->
+        ${hasYouTube ? `
+        <div id="youtube-player-${index}" style="display:none;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;margin-top:1rem;background:#000;">
+          <iframe id="youtube-iframe-${index}"
+            style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen src="">
+          </iframe>
+        </div>
+        ` : ''}
+        
+        <!-- Buttons -->
+        <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+          ${hasYouTube ? `
+          <button id="play-btn-${index}" class="play-btn" style="flex:1;">
+            ▶️ Play
+          </button>
+          <a href="${track.youtube?.url || `https://www.youtube.com/results?search_query=${encodeURIComponent((track.title || '') + ' ' + (track.artist || ''))}`}"
+             target="_blank" class="play-btn"
+             style="flex:1;text-align:center;text-decoration:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
+            🔗 YouTube
+          </a>
+          ` : `
+          <button id="search-btn-${index}" class="play-btn" style="flex:1;">
+            🔍 Search on YouTube
+          </button>
+          `}
+        </div>
+      `;
+
+        recommendationsGrid.appendChild(card);
+
+        if (hasYouTube) {
+          const playBtn = document.getElementById(`play-btn-${index}`);
+          playBtn?.addEventListener('click', () =>
+            toggleYouTubePlayer(index, youtubeId)
+          );
+        } else {
+          const searchBtn = document.getElementById(`search-btn-${index}`);
+          searchBtn?.addEventListener('click', () => {
+            const q = encodeURIComponent(`${track.title || ''} ${track.artist || ''}`);
+            window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
+          });
+        }
+      });
+
+      // Backend does not really support pagination (hasMore = false), so hide button
+      if (moreBtn) {
+        moreBtn.style.display = 'none';
+      }
+    }
+
+    // -------------------- YouTube player toggle --------------------
+    function toggleYouTubePlayer(index, videoId) {
+      const playerDiv = document.getElementById(`youtube-player-${index}`);
+      const iframe = document.getElementById(`youtube-iframe-${index}`);
+      const playBtn = document.getElementById(`play-btn-${index}`);
+      const card = document.getElementById(`recommendation-card-${index}`);
+
+      if (!playerDiv || !iframe || !playBtn) return;
+
+      // Stop any other playing card
+      if (currentlyPlayingIndex !== null && currentlyPlayingIndex !== index) {
+        const prevPlayer = document.getElementById(
+          `youtube-player-${currentlyPlayingIndex}`
+        );
+        const prevIframe = document.getElementById(
+          `youtube-iframe-${currentlyPlayingIndex}`
+        );
+        const prevBtn = document.getElementById(
+          `play-btn-${currentlyPlayingIndex}`
+        );
+        const prevCard = document.getElementById(
+          `recommendation-card-${currentlyPlayingIndex}`
+        );
+
+        if (prevIframe) prevIframe.src = '';
+        if (prevPlayer) prevPlayer.style.display = 'none';
+        if (prevBtn) prevBtn.textContent = '▶️ Play in Card';
+        if (prevCard) {
+          prevCard.style.boxShadow = '';
+          prevCard.style.transform = '';
+        }
+        currentlyPlayingIndex = null;
+      }
+
+      if (playerDiv.style.display === 'none' || !playerDiv.style.display) {
+        playerDiv.style.display = 'block';
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+        playBtn.textContent = '⏸️ Hide Player';
+        if (card) {
+          card.style.boxShadow = '0 10px 25px rgba(102,126,234,0.3)';
+          card.style.transform = 'scale(1.01)';
+        }
+        currentlyPlayingIndex = index;
+      } else {
+        playerDiv.style.display = 'none';
+        iframe.src = '';
+        playBtn.textContent = '▶️ Play in Card';
+        if (card) {
+          card.style.boxShadow = '';
+          card.style.transform = '';
+        }
+        currentlyPlayingIndex = null;
+      }
+    }
+
+    // -------------------- Load more (disabled – no backend support) --------------------
+    async function loadMoreRecommendations() {
+      console.warn('Load more is disabled because backend does not support enhanced pagination.');
+    }
+
+    // -------------------- DOMContentLoaded --------------------
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Grab all elements
+      choiceSection = document.getElementById('choiceSection');
+      continueExistingBtn = document.getElementById('continueExistingBtn');
+      uploadNewBtn = document.getElementById('uploadNewBtn');
+
+      historyFileInput = document.getElementById('historyFile');
+      historyUploadBtn = document.getElementById('uploadHistoryBtn');
+      historyUploadStatus = document.getElementById('historyUploadStatus');
+      listeningHistorySection = document.getElementById('listeningHistorySection');
+
+      recommendationsSection = document.getElementById('recommendationsSection');
+      recommendationsGrid = document.getElementById('recommendationsGrid');
+      loadingScreen = document.getElementById('loadingScreen');
+      moreBtn = document.getElementById('moreBtn');
+
+      // File input behavior for listening history CSV
+      if (historyFileInput && historyUploadBtn) {
+        historyFileInput.addEventListener('change', () => {
+          if (historyFileInput.files && historyFileInput.files.length) {
+            historyUploadBtn.disabled = false;
+            historyUploadBtn.textContent = `Upload ${historyFileInput.files[0].name}`;
+          } else {
+            historyUploadBtn.disabled = true;
+            historyUploadBtn.textContent = 'Upload Listening History';
+          }
+        });
+        historyUploadBtn.addEventListener('click', uploadListeningHistory);
+      }
+
+      // Choice section button handlers
+      if (continueExistingBtn) {
+        continueExistingBtn.addEventListener('click', async () => {
+          // User wants to continue with existing data
+          choiceSection.style.display = 'none';
+          loadingScreen.style.display = 'flex';
+          
+          setTimeout(async () => {
+            loadingScreen.style.display = 'none';
+            recommendationsSection.style.display = 'block';
+            await loadRecommendationsWithYouTube(0);
+          }, 1500);
+        });
+      }
+
+      if (uploadNewBtn) {
+        uploadNewBtn.addEventListener('click', () => {
+          // User wants to upload new file
+          choiceSection.style.display = 'none';
+          listeningHistorySection.style.display = 'block';
+        });
+      }
+
+      // "Load more" button (disabled)
+      if (moreBtn) {
+        moreBtn.style.display = 'none';
+        moreBtn.addEventListener('click', loadMoreRecommendations);
+      }
+
+      // Get user ID first
+      currentUserId = await getCurrentUserId();
+      if (!currentUserId) {
+        console.warn('User not resolved yet. When they upload, server will enforce auth.');
+        // Show upload section for new users
+        if (listeningHistorySection) listeningHistorySection.style.display = 'block';
+        return;
+      }
+
+      // Check if user has existing listening history
+      loadingScreen.style.display = 'flex';
+      hasExistingData = await checkExistingHistory();
+      loadingScreen.style.display = 'none';
+
+      if (hasExistingData) {
+        // Show choice section
+        if (choiceSection) choiceSection.style.display = 'block';
+        if (listeningHistorySection) listeningHistorySection.style.display = 'none';
+      } else {
+        // Show upload section for first-time users
+        if (choiceSection) choiceSection.style.display = 'none';
+        if (listeningHistorySection) listeningHistorySection.style.display = 'block';
+      }
+      if (recommendationsSection) recommendationsSection.style.display = 'none';
+    });
+  </script>
+
+</body>
+
+</html>
